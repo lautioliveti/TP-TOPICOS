@@ -98,7 +98,7 @@ int email_valido_ALU(const char *email)
 
     while (*p && *p != '@') {
         total_len++;
-        if (total_len > 30) return 0; // Regla 1
+        if (total_len > EMAIL_MAX_LEN) return 0; // Regla 1
         if (*p == ' ') return 0;      // Regla 1
 
         es_letra = ((*p >= 'a' && *p <= 'z') || (*p >= 'A' && *p <= 'Z'));
@@ -120,7 +120,7 @@ int email_valido_ALU(const char *email)
 
     // Avanzamos para saltar la '@'
     total_len++;
-    if (total_len > 30)
+    if (total_len > EMAIL_MAX_LEN)
         return 0;
     p++;
 
@@ -131,7 +131,7 @@ int email_valido_ALU(const char *email)
     // @ dsps
     while (*p) {
         total_len++;
-        if (total_len > 30) return 0; // Regla 1
+        if (total_len > EMAIL_MAX_LEN) return 0; // Regla 1
         if (*p == ' ') return 0;      // Regla 1
 
         es_letra = ((*p >= 'a' && *p <= 'z') || (*p >= 'A' && *p <= 'Z'));

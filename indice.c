@@ -324,8 +324,7 @@ int indice_cargar_ALU(const char *path, t_indice *indice, size_t tamanyo_reg,
     t_reg_indice reg_indice;
     unsigned nro_reg_archivo = 0;
 
-    fread(buffer_reg, tamanyo_reg, 1, pfArchivo);
-    while (!feof(pfArchivo))
+    while (fread(buffer_reg, tamanyo_reg, 1, pfArchivo) == 1)
     {
 
         if (es_activo(buffer_reg) != 0)
@@ -345,8 +344,6 @@ int indice_cargar_ALU(const char *path, t_indice *indice, size_t tamanyo_reg,
 
 
         nro_reg_archivo++;
-
-        fread(buffer_reg, tamanyo_reg, 1, pfArchivo);
     }
 
     free(buffer_reg);

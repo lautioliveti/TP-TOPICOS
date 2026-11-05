@@ -66,9 +66,8 @@ int novedades_procesar_ALU(t_indice *indice, const char *path_novedades,
     ctx.fecha_proceso = fecha_proceso;
 
     printf("Procesando %s...\n\n", path_novedades);
-    fread(&novedad, sizeof(t_novedad), 1, arch_novedades);
 
-    while (!feof(arch_novedades))
+    while (fread(&novedad, sizeof(t_novedad), 1, arch_novedades) == 1)
     {
         int novedad_valida = 1;
         const char *motivo_rechazo = NULL;
@@ -96,7 +95,14 @@ int novedades_procesar_ALU(t_indice *indice, const char *path_novedades,
                 fseek(arch_titulos, 0, SEEK_END);
                 posicion_archivo = ftell(arch_titulos);
                 nro_reg = (unsigned)(posicion_archivo / (long)sizeof(t_titulo));
-                fwrite(&titulo, sizeof(t_titulo), 1, arch_titulos);
+                if (fwrite(&titulo, sizeof(t_titulo), 1, arch_titulos) != 1) {
+                    printf("Error no se pudo escribir el titulo en %s.\n",
+                           path_titulos);
+                    motivo_rechazo = "error al escribir el titulo";
+                    novedad_valida = 0;
+                    resultado = ERROR;
+                    break;
+                }
 
                 registro_indice.id = titulo.id;
                 registro_indice.nro_reg = nro_reg;
@@ -225,7 +231,6 @@ int novedades_procesar_ALU(t_indice *indice, const char *path_novedades,
             break;
         }
 
-        fread(&novedad, sizeof(t_novedad), 1, arch_novedades);
     }
 
     printf("\nNovedades procesadas: %u   Rechazadas: %u\n",procesadas, rechazadas);

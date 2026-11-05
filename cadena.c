@@ -3,8 +3,6 @@
 #include <stddef.h>
 #include "cadena.h"
 
-#define ESLETRA(X) ( (((X)>='a' && (X)<='z')||((X)>='A' && (X)<='Z'))? 1 : 0 )
-#define ESMAYUS(X) ( ((X) >='A' && (X) <='B') ? 1 : 0 )
 #define MAX_STR 100
 
 
@@ -25,14 +23,17 @@ void arreglar_apyn_ALU(char *s)
     char temp[MAX_STR] = {0};
     char* p_src = s;
     char* p_dst = temp;
+    int tiene_coma = strchr(s, ',') != NULL;
     int coma_puesta = 0;
     int nueva_palabra = 1;
     while (*p_src != '\0' && (p_dst - temp) < MAX_STR - 2) {
 
         if (*p_src == ',') {
             if (!coma_puesta) {
-
-                if (p_dst > temp && *(p_dst - 1) != ' ') {
+                while (p_dst > temp && *(p_dst - 1) == ' ') {
+                    p_dst--;
+                }
+                if (p_dst > temp) {
                     *p_dst++ = ',';
                     *p_dst++ = ' ';
                     coma_puesta = 1;
@@ -40,7 +41,7 @@ void arreglar_apyn_ALU(char *s)
                 }
             }
         } else if (isspace(*p_src)) {
-            if (!coma_puesta) {
+            if (!tiene_coma && !coma_puesta) {
                 if (p_dst > temp && *(p_dst - 1) != ' ') {
                     *p_dst++ = ',';
                     *p_dst++ = ' ';

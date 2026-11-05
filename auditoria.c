@@ -53,7 +53,7 @@ int auditoria_registrar_ALU(const char *path, const char *dni_texto, const char 
         return ERROR;
     }
 
-    fprintf(arch,"%s;%s;%d/%d/%d\n", dni_texto,tipo_error,fecha_proceso->dia,fecha_proceso->mes,fecha_proceso->anio);
+    fprintf(arch,"%s;%s;%02d/%02d/%04d\n", dni_texto,tipo_error,fecha_proceso->dia,fecha_proceso->mes,fecha_proceso->anio);
 
     fclose(arch);
     return OK;
@@ -79,8 +79,8 @@ int auditoria_mostrar_ALU(const char *path)
 
     arch = fopen(path, "rt");
     if (!arch) {
-        printf("Error: no se pudo abrir %s.\n", path);
-        return ERROR;
+        printf("No hay incidencias.\n");
+        return OK;
     }
 
     t_incidencia *incidencias = malloc(capacidad * sizeof(t_incidencia));
@@ -98,7 +98,12 @@ int auditoria_mostrar_ALU(const char *path)
     while (fgets(linea, TAM_LINEA, arch))
     {
 
-        sscanf(linea, "%[^;];%[^;];%[^\n]", dni, tipo_error, fecha);
+        if (sscanf(linea, "%[^;];%[^;];%[^\n]", dni, tipo_error, fecha) != 3) {
+            printf("Error: registro invalido en el archivo de auditoria.\n");
+            free(incidencias);
+            fclose(arch);
+            return ERROR;
+        }
 
         cadena_a_mayusculas_ALU(tipo_error);
         reemplazar_caracter(tipo_error,' ','_');

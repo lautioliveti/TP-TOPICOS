@@ -181,7 +181,6 @@ int generar_binarios_ALU(t_indice *ind_socios, t_indice *ind_titulos, const t_fe
 {
     FILE *arch_socios;
     FILE *arch_titulos;
-    FILE *arch_errores;
 
     t_socio socio;
     t_titulo titulo;
@@ -213,20 +212,6 @@ int generar_binarios_ALU(t_indice *ind_socios, t_indice *ind_titulos, const t_fe
         return ERROR;
     }
 
-    arch_errores = fopen(ARCH_ERRORES, "w");
-    if (!arch_errores ) {
-
-        fclose(arch_socios);
-        fclose(arch_titulos);
-        return ERROR;
-    }
-    if (fclose(arch_errores) != 0) {
-
-        fclose(arch_socios);
-        fclose(arch_titulos);
-        return ERROR;
-    }
-
     indice_vaciar_ALU(ind_socios);
     indice_vaciar_ALU(ind_titulos);
 
@@ -237,13 +222,9 @@ int generar_binarios_ALU(t_indice *ind_socios, t_indice *ind_titulos, const t_fe
     resultado_titulos = leer_archivo_texto_ALU(ARCH_TITULOS_CSV, arch_titulos, ind_titulos, &titulo,sizeof(t_titulo), fecha_proceso, texto_a_titulo_ALU,valida_titulo_ALU,
                                                rechaza_titulo, clave_titulo, &titulos_aceptados,&titulos_rechazados);
 
-    if (fclose(arch_socios) != 0) {
-        resultado = ERROR;
-    }
+    fclose(arch_socios);
+    fclose(arch_titulos);
 
-    if (fclose(arch_titulos) != 0) {
-        resultado = ERROR;
-    }
     printf("Socios: %u aceptados, %u rechazados. (ver archivos/errores_socios.txt)\n",socios_aceptados, socios_rechazados);
     printf("Titulos: %u aceptados, %u rechazados.\n",titulos_aceptados, titulos_rechazados);
 

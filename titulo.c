@@ -32,6 +32,9 @@ int texto_a_titulo_ALU(const char *linea, void *reg)
     titulo->stock = -1;
     titulo->estado = 'A';
 
+    if (strlen(linea) >= sizeof(buffer)) {
+        return ERROR;
+    }
     strcpy(buffer, linea);
 
     char *salto_linea = buffer;
@@ -51,8 +54,17 @@ int texto_a_titulo_ALU(const char *linea, void *reg)
         titulo->id = 0;
     }
 
-    strcpy(titulo->titulo, campos[1]);
-    strcpy(titulo->genero, campos[2]);
+    if (strlen(campos[1]) >= sizeof(titulo->titulo)) {
+        titulo->titulo[0] = '\0';
+    } else {
+        strcpy(titulo->titulo, campos[1]);
+    }
+
+    if (strlen(campos[2]) >= sizeof(titulo->genero)) {
+        strcpy(titulo->genero, "!");
+    } else {
+        strcpy(titulo->genero, campos[2]);
+    }
 
     if (sscanf(campos[3], "%d", &titulo->stock) != 1) {
         titulo->stock = -1;
@@ -96,7 +108,7 @@ int valida_titulo_ALU(void *reg, const t_contexto *ctx, char *tipo_error)
 
     arreglar_titulo(titulo->titulo);
     if (cadena_vacia(titulo->titulo)) {
-        strcpy(tipo_error, "Titulo");
+        strcpy(tipo_error, "TITULO");
         return ERROR;
     }
 
@@ -107,12 +119,12 @@ int valida_titulo_ALU(void *reg, const t_contexto *ctx, char *tipo_error)
         }
     }
     if (!genero_valido) {
-        strcpy(tipo_error, "Genero");
+        strcpy(tipo_error, "GENERO");
         return ERROR;
     }
 
     if (titulo->stock < 0) {
-        strcpy(tipo_error, "Stock");
+        strcpy(tipo_error, "STOCK");
         return ERROR;
     }
 

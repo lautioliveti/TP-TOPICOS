@@ -28,7 +28,7 @@ Descripcion:    toma memoria para nmemb elementos e inicializa la
 Parametros:     indice: TDA indice.
                 nmemb: cantidad inicial de elementos del indice
                        (CANTIDAD_ELEMENTOS).
-                tamanyo: espacio en bytes ocupado por cada elemento.
+                tamanyo: debe ser sizeof(t_reg_indice).
 Retorno:        OK si la operacion fue exitosa y ERROR en caso contrario.
 Observaciones:  -
 **************************************************************************/
@@ -37,7 +37,7 @@ int indice_crear(t_indice *indice, size_t nmemb, size_t tamanyo);
 /**************************************************************************
 Descripcion:    redimensiona el arreglo interno del indice.
 Parametros:     indice: TDA indice.
-                tamanyo: espacio en bytes ocupado por cada elemento.
+                tamanyo: debe ser sizeof(t_reg_indice).
 Retorno:        OK si la operacion fue exitosa y ERROR en caso contrario.
 Observaciones:  La nueva capacidad es la capacidad actual multiplicada
                 por INCREMENTO (30 % mas). La calcula la propia funcion.
@@ -48,7 +48,7 @@ int indice_redimensionar(t_indice *indice, size_t tamanyo);
 Descripcion:    inserta un elemento manteniendo el orden segun la clave.
 Parametros:     indice: TDA indice.
                 registro: elemento a insertar.
-                tamanyo: espacio en bytes ocupado por el elemento.
+                tamanyo: debe ser sizeof(t_reg_indice).
                 cmp: funcion de comparacion provista.
 Retorno:        OK si la operacion fue exitosa y ERROR en caso contrario
                 (por ejemplo, clave duplicada o falta de memoria).
@@ -61,7 +61,7 @@ int indice_insertar(t_indice *indice, const void *registro, size_t tamanyo,
 Descripcion:    elimina el elemento cuya clave coincide con la de registro.
 Parametros:     indice: TDA indice.
                 registro: elemento a eliminar.
-                tamanyo: espacio en bytes ocupado por el elemento.
+                tamanyo: debe ser sizeof(t_reg_indice).
                 cmp: funcion de comparacion provista.
 Retorno:        OK si la operacion fue exitosa y ERROR en caso contrario.
 Observaciones:  -
@@ -74,7 +74,7 @@ Descripcion:    busca la clave de registro en el indice. Si existe, copia
                 el elemento completo en registro.
 Parametros:     indice: TDA indice.
                 registro: elemento a buscar (entrada/salida).
-                tamanyo: espacio en bytes ocupado por el elemento.
+                tamanyo: debe ser sizeof(t_reg_indice).
                 cmp: funcion de comparacion provista.
 Retorno:        NO_EXISTE si la clave no existe; en caso contrario, la
                 posicion que ocupa dentro del arreglo.

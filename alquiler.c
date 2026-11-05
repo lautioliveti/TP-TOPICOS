@@ -71,14 +71,18 @@ int alquilar_ALU(t_indice *ind_socios, t_indice *ind_titulos, const char *path_s
     t_reg_indice clave_titulo;
     t_socio socio;
     t_titulo titulo;
-    long dni;
-    int id_titulo;
+    long dni = 0;
+    int id_titulo = 0;
     int plan;
     int genero;
     int posicion;
 
     printf("DNI del socio: ");
-    scanf("%ld", &dni);
+    if (scanf("%ld", &dni) != 1) {
+        limpiar_entrada();
+        printf("Error: DNI invalido.\n");
+        return ERROR;
+    }
     limpiar_entrada();
 
     clave_socio.id = dni;
@@ -105,7 +109,11 @@ int alquilar_ALU(t_indice *ind_socios, t_indice *ind_titulos, const char *path_s
     fclose(arch_socios);
 
     printf("ID del titulo a alquilar: ");
-    scanf("%d", &id_titulo);
+    if (scanf("%d", &id_titulo) != 1) {
+        limpiar_entrada();
+        printf("Error: ID de titulo invalido.\n");
+        return ERROR;
+    }
     limpiar_entrada();
 
     clave_titulo.id = id_titulo;

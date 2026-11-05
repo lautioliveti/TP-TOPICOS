@@ -30,9 +30,6 @@ void pedir_fecha_proceso(t_fecha *fecha_proceso);
 /*            FUNCIONES A IMPLEMENTAR POR EL ALUMNO (version _ALU)             */
 /*============================================================================*/
 
-int  fecha_correcta_ALU(const t_fecha *fecha);
-int  compara_fechas_ALU(const t_fecha *fecha1, const t_fecha *fecha2);
-int  edad_ALU(const t_fecha *nacimiento, const t_fecha *referencia);
 void pedir_fecha_proceso_ALU(t_fecha *fecha_proceso);
 
 #endif /* FECHA_H_INCLUDED */

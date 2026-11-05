@@ -1,4 +1,4 @@
-#include <ctype.h>
+#include <errno.h>
 #include <stdlib.h>
 #include <string.h>
 #include "socio.h"
@@ -7,6 +7,66 @@
 #include "auditoria.h"
 #include "config.h"
 #include "menu.h"
+
+static int leer_linea_limitada(char *dest, size_t tam)
+{
+    size_t longitud = 0;
+    int caracter;
+    int desbordada = 0;
+
+    while ((caracter = getchar()) != '\n' && caracter != EOF) {
+        if (longitud + 1 < tam) {
+            dest[longitud++] = (char)caracter;
+        } else {
+            desbordada = 1;
+        }
+    }
+
+    dest[longitud] = '\0';
+    return desbordada ? ERROR : OK;
+}
+
+static int parsear_dni(const char *texto, long *dni)
+{
+    const char *caracter;
+    char *fin;
+
+    if (texto == NULL || *texto == '\0') {
+        return ERROR;
+    }
+
+    for (caracter = texto; *caracter != '\0'; caracter++) {
+        if (*caracter < '0' || *caracter > '9') {
+            return ERROR;
+        }
+    }
+
+    errno = 0;
+    *dni = strtol(texto, &fin, 10);
+    return errno == ERANGE || *fin != '\0' ? ERROR : OK;
+}
+
+static int parsear_fecha_texto(const char *texto, t_fecha *fecha)
+{
+    size_t i;
+
+    if (texto == NULL || strlen(texto) != 10 ||
+        texto[2] != '/' || texto[5] != '/') {
+        return ERROR;
+    }
+
+    for (i = 0; i < 10; i++) {
+        if (i != 2 && i != 5 && (texto[i] < '0' || texto[i] > '9')) {
+            return ERROR;
+        }
+    }
+
+    fecha->dia = (texto[0] - '0') * 10 + texto[1] - '0';
+    fecha->mes = (texto[3] - '0') * 10 + texto[4] - '0';
+    fecha->anio = (texto[6] - '0') * 1000 + (texto[7] - '0') * 100 +
+                  (texto[8] - '0') * 10 + texto[9] - '0';
+    return OK;
+}
 
 /*============================================================================*/
 /*            FUNCIONES A IMPLEMENTAR POR EL ALUMNO (version _ALU)             */
@@ -67,20 +127,23 @@ int texto_a_socio_ALU(const char *linea, void *reg)
 
 
     // DNI
-    if (sscanf(campos[0], "%ld", &socio->dni) != 1) {
+    if (parsear_dni(campos[0], &socio->dni) != OK) {
         socio->dni = 0;
     }
 
     // CUIL
-    strncpy(socio->cuil, campos[1], sizeof(socio->cuil) - 1);
-    socio->cuil[sizeof(socio->cuil) - 1] = '\0';
+    if (strlen(campos[1]) >= sizeof(socio->cuil)) {
+        strcpy(socio->cuil, "!");
+    } else {
+        strcpy(socio->cuil, campos[1]);
+    }
 
     // Apellidos y Nombres
     strncpy(socio->apellidos_nombres, campos[2], sizeof(socio->apellidos_nombres) - 1);
     socio->apellidos_nombres[sizeof(socio->apellidos_nombres) - 1] = '\0';
 
     // Fecha de Nacimiento
-    if (sscanf(campos[3], "%d/%d/%d", &socio->fecha_nacimiento.dia, &socio->fecha_nacimiento.mes, &socio->fecha_nacimiento.anio) != 3) {
+    if (parsear_fecha_texto(campos[3], &socio->fecha_nacimiento) != OK) {
         socio->fecha_nacimiento.dia = 0; socio->fecha_nacimiento.mes = 0; socio->fecha_nacimiento.anio = 0;
     }
 
@@ -92,7 +155,7 @@ int texto_a_socio_ALU(const char *linea, void *reg)
     }
 
     // Fecha de AfiliaciOn
-    if (sscanf(campos[5], "%d/%d/%d", &socio->fecha_afiliacion.dia, &socio->fecha_afiliacion.mes, &socio->fecha_afiliacion.anio) != 3) {
+    if (parsear_fecha_texto(campos[5], &socio->fecha_afiliacion) != OK) {
         socio->fecha_afiliacion.dia = 0; socio->fecha_afiliacion.mes = 0; socio->fecha_afiliacion.anio = 0;
     }
 
@@ -101,7 +164,7 @@ int texto_a_socio_ALU(const char *linea, void *reg)
     socio->categoria[sizeof(socio->categoria) - 1] = '\0';
 
     // Ultima cuota
-    if (sscanf(campos[7], "%d/%d/%d", &socio->fecha_ultima_cuota.dia, &socio->fecha_ultima_cuota.mes, &socio->fecha_ultima_cuota.anio) != 3) {
+    if (parsear_fecha_texto(campos[7], &socio->fecha_ultima_cuota) != OK) {
         socio->fecha_ultima_cuota.dia = 0; socio->fecha_ultima_cuota.mes = 0; socio->fecha_ultima_cuota.anio = 0;
     }
 
@@ -110,8 +173,11 @@ int texto_a_socio_ALU(const char *linea, void *reg)
     socio->plan[sizeof(socio->plan) - 1] = '\0';
 
     // Email tutor
-    strncpy(socio->email_tutor, campos[9], sizeof(socio->email_tutor) - 1);
-    socio->email_tutor[sizeof(socio->email_tutor) - 1] = '\0';
+    if (strlen(campos[9]) >= sizeof(socio->email_tutor)) {
+        strcpy(socio->email_tutor, "!");
+    } else {
+        strcpy(socio->email_tutor, campos[9]);
+    }
 
     return OK;
 }
@@ -140,7 +206,7 @@ int valida_socio_ALU(void *reg, const t_contexto *ctx, char *tipo_error)
     char cuil_calculado[TAM_CUIL];
 
     // DNI
-    if (socio->dni < DNI_MIN || socio->dni >= DNI_MAX) {
+    if (socio->dni <= DNI_MIN || socio->dni >= DNI_MAX) {
         strcpy(tipo_error, "DNI");
         return ERROR;
     }
@@ -157,56 +223,56 @@ int valida_socio_ALU(void *reg, const t_contexto *ctx, char *tipo_error)
 
     // Sexo
     if (socio->sexo != 'H' && socio->sexo != 'M') {
-        strcpy(tipo_error, "Sexo");
+        strcpy(tipo_error, "SEXO");
         return ERROR;
     }
 
     // CUIL
     calcular_cuil_ALU(socio->dni, socio->sexo, cuil_calculado);
     if (strcmp(socio->cuil, cuil_calculado) != 0) {
-        strcpy(tipo_error, "Cuil");
+        strcpy(tipo_error, "CUIL");
         return ERROR;
     }
 
     // Apellidos y Nombres
     arreglar_apyn_ALU(socio->apellidos_nombres);
     if (strlen(socio->apellidos_nombres) == 0) {
-        strcpy(tipo_error, "Apellidos y Nombres");
+        strcpy(tipo_error, "APELLIDOS_NOMBRES");
         return ERROR;
     }
 
     // Fecha de nacimiento
     if (!fecha_correcta(&socio->fecha_nacimiento)) {
-        strcpy(tipo_error, "Fecha de nacimiento");
+        strcpy(tipo_error, "FECHA_NACIMIENTO");
         return ERROR;
     }
     // Edad
     edad_socio = edad(&socio->fecha_nacimiento, ctx->fecha_proceso);
     if (edad_socio < EDAD_MINIMA) {
-        strcpy(tipo_error, "Fecha de nacimiento");
+        strcpy(tipo_error, "FECHA_NACIMIENTO");
         return ERROR;
     }
 
     // Fecha de afiliacion
     if (!fecha_correcta(&socio->fecha_afiliacion) || compara_fechas(&socio->fecha_afiliacion, &socio->fecha_nacimiento) <= 0 || compara_fechas(&socio->fecha_afiliacion, ctx->fecha_proceso) > 0) {
-        strcpy(tipo_error, "Fecha de afiliacion");
+        strcpy(tipo_error, "FECHA_AFILIACION");
         return ERROR;
     }
 
     // Categoria
     if (strcmp(socio->categoria, CAT_MENOR) != 0 &&strcmp(socio->categoria, CAT_ADULTO) != 0) {
-        strcpy(tipo_error, "Categoria");
+        strcpy(tipo_error, "CATEGORIA");
         return ERROR;
     }
     if ((edad_socio < EDAD_ADULTO && strcmp(socio->categoria, CAT_MENOR) != 0) ||
         (edad_socio >= EDAD_ADULTO && strcmp(socio->categoria, CAT_ADULTO) != 0)) {
-        strcpy(tipo_error, "Categoria");
+        strcpy(tipo_error, "CATEGORIA");
         return ERROR;
     }
 
     // Fecha de ultima cuota
     if (!fecha_correcta(&socio->fecha_ultima_cuota) || compara_fechas(&socio->fecha_ultima_cuota, &socio->fecha_afiliacion) < 0 || compara_fechas(&socio->fecha_ultima_cuota, ctx->fecha_proceso) > 0) {
-        strcpy(tipo_error, "Fecha de ultima cuota");
+        strcpy(tipo_error, "FECHA_ULTIMA_CUOTA");
         return ERROR;
     }
 
@@ -216,25 +282,25 @@ int valida_socio_ALU(void *reg, const t_contexto *ctx, char *tipo_error)
         strcmp(socio->plan, "VIP") != 0 &&
         strcmp(socio->plan, "FAMILY") != 0) {
 
-        strcpy(tipo_error, "Plan");
+        strcpy(tipo_error, "PLAN");
         return ERROR;
     }
 
     // Email Tutor
     if (strcmp(socio->categoria, CAT_MENOR) == 0) {
         if (!email_valido_ALU(socio->email_tutor)) {
-            strcpy(tipo_error, "Email tutor");
+            strcpy(tipo_error, "EMAIL_TUTOR");
             return ERROR;
         }
     } else if (socio->email_tutor[0] != '\0') {
-        strcpy(tipo_error, "Email tutor");
+        strcpy(tipo_error, "EMAIL_TUTOR");
         return ERROR;
     }
 
     if (socio->email_tutor[0] != '\0' &&
         socio_email_existe(ctx->arch_bin, ctx->indice, socio->email_tutor,
                            ctx->id_modificando)) {
-        strcpy(tipo_error, "Email tutor");
+        strcpy(tipo_error, "EMAIL_TUTOR");
         return ERROR;
     }
 
@@ -340,11 +406,11 @@ int socio_alta_manual_ALU(t_indice *indice, const char *path, const t_fecha *fec
     t_contexto ctx;
     t_reg_indice reg_indice;
 
-    char dni_texto[32];
+    char dni_texto[TAM_LINEA];
     char tipo_error[TAM_TIPO_ERROR];
+    char fecha_texto[32];
     long posicion_archivo;
     unsigned nro_reg;
-    int edad_socio;
 
     FILE * arch = fopen(path, "r+b");
     if (arch == NULL) {
@@ -371,70 +437,66 @@ int socio_alta_manual_ALU(t_indice *indice, const char *path, const t_fecha *fec
     socio.estado = 'A';
 
     printf("DNI del socio: ");
-    if (scanf("%ld", &socio.dni) != 1) {
+    if (leer_linea_limitada(dni_texto, sizeof(dni_texto)) != OK) {
+        socio.dni = 0;
+    } else if (parsear_dni(dni_texto, &socio.dni) != OK) {
         socio.dni = 0;
     }
-    limpiar_entrada();
 
     printf("CUIL (formato XX-NNNNNNNN-Z): ");
-    leer_linea(socio.cuil, sizeof(socio.cuil));
+    if (leer_linea_limitada(socio.cuil, sizeof(socio.cuil)) != OK) {
+        strcpy(socio.cuil, "!");
+    }
 
     printf("Apellidos y nombres: ");
     leer_linea(socio.apellidos_nombres, sizeof(socio.apellidos_nombres));
 
     printf("Fecha de nacimiento (dd/mm/aaaa): ");
-    if (scanf("%d/%d/%d", &socio.fecha_nacimiento.dia,
-              &socio.fecha_nacimiento.mes,
-              &socio.fecha_nacimiento.anio) != 3) {
+    if (leer_linea_limitada(fecha_texto, sizeof(fecha_texto)) != OK ||
+        parsear_fecha_texto(fecha_texto, &socio.fecha_nacimiento) != OK) {
         socio.fecha_nacimiento.dia = 0;
         socio.fecha_nacimiento.mes = 0;
         socio.fecha_nacimiento.anio = 0;
     }
-    limpiar_entrada();
 
     printf("Sexo (H/M): ");
     if (scanf(" %c", &socio.sexo) != 1) {
         socio.sexo = '?';
-    } else {
-        socio.sexo = AMAYUS(socio.sexo);
     }
     limpiar_entrada();
 
 
 
     printf("Fecha de afiliacion (dd/mm/aaaa): ");
-    if (scanf("%d/%d/%d", &socio.fecha_afiliacion.dia,
-              &socio.fecha_afiliacion.mes,
-              &socio.fecha_afiliacion.anio) != 3) {
+    if (leer_linea_limitada(fecha_texto, sizeof(fecha_texto)) != OK ||
+        parsear_fecha_texto(fecha_texto, &socio.fecha_afiliacion) != OK) {
         socio.fecha_afiliacion.dia = 0;
         socio.fecha_afiliacion.mes = 0;
         socio.fecha_afiliacion.anio = 0;
     }
-    limpiar_entrada();
 
-    edad_socio = edad(&socio.fecha_nacimiento, fecha_proceso);
-    if (edad_socio >= 0)
-    {
-        strcpy(socio.categoria, edad_socio < EDAD_ADULTO ? CAT_MENOR : CAT_ADULTO);
+    printf("Categoria (MENOR/ADULTO): ");
+    if (leer_linea_limitada(socio.categoria, sizeof(socio.categoria)) != OK) {
+        strcpy(socio.categoria, "!");
     }
 
     printf("Fecha de ultima cuota (dd/mm/aaaa): ");
-    if (scanf("%d/%d/%d", &socio.fecha_ultima_cuota.dia, &socio.fecha_ultima_cuota.mes,&socio.fecha_ultima_cuota.anio) != 3)
+    if (leer_linea_limitada(fecha_texto, sizeof(fecha_texto)) != OK ||
+        parsear_fecha_texto(fecha_texto, &socio.fecha_ultima_cuota) != OK)
     {
         socio.fecha_ultima_cuota.dia = 0;
         socio.fecha_ultima_cuota.mes = 0;
         socio.fecha_ultima_cuota.anio = 0;
     }
-    limpiar_entrada();
-
     printf("Plan en mayusculas (BASIC/PREMIUM/VIP/FAMILY): ");
     leer_linea(socio.plan, sizeof(socio.plan));
-    cadena_a_mayusculas_ALU(socio.plan);
 
 
     if (strcmp(socio.categoria, CAT_MENOR) == 0) {
         printf("Email del tutor: ");
-        leer_linea(socio.email_tutor, sizeof(socio.email_tutor));
+        if (leer_linea_limitada(socio.email_tutor, sizeof(socio.email_tutor)) != OK) {
+            strcpy(socio.email_tutor, "!");
+        }
     }
 
 
@@ -444,7 +506,6 @@ int socio_alta_manual_ALU(t_indice *indice, const char *path, const t_fecha *fec
     ctx.id_modificando = 0;
 
     if (valida_socio_ALU(&socio, &ctx, tipo_error) != OK) {
-        sprintf(dni_texto,"%ld",socio.dni);
         if (auditoria_registrar_ALU(ARCH_ERRORES, dni_texto, tipo_error,fecha_proceso) != OK) {
             printf("Error: no se pudo registrar el rechazo en la auditoria.\n");
         }
@@ -544,7 +605,9 @@ int socio_modificacion_manual_ALU(t_indice *indice, const char *path, const t_fe
     printf("Deje el campo vacio y presione Enter para conservar el dato actual.\n");
 
     printf("CUIL actual %s. Nuevo CUIL: ", socio.cuil);
-    leer_linea(cuil, sizeof(cuil));
+    if (leer_linea_limitada(cuil, sizeof(cuil)) != OK) {
+        strcpy(cuil, "!");
+    }
     if (cuil[0] != '\0') {
         strcpy(socio.cuil, cuil);
     }
@@ -558,8 +621,7 @@ int socio_modificacion_manual_ALU(t_indice *indice, const char *path, const t_fe
     printf("Fecha de nacimiento actual %02d/%02d/%04d. Nueva fecha (dd/mm/aaaa): ",socio.fecha_nacimiento.dia, socio.fecha_nacimiento.mes,socio.fecha_nacimiento.anio);
     leer_linea(entrada, sizeof(entrada));
     if (entrada[0] != '\0') {
-        char caracter_extra;
-        if (sscanf(entrada, "%d/%d/%d %c", &socio.fecha_nacimiento.dia,&socio.fecha_nacimiento.mes, &socio.fecha_nacimiento.anio,&caracter_extra) != 3) {
+        if (parsear_fecha_texto(entrada, &socio.fecha_nacimiento) != OK) {
             socio.fecha_nacimiento.dia = 0;
             socio.fecha_nacimiento.mes = 0;
             socio.fecha_nacimiento.anio = 0;
@@ -575,8 +637,7 @@ int socio_modificacion_manual_ALU(t_indice *indice, const char *path, const t_fe
     printf("Fecha de afiliacion actual %02d/%02d/%04d. Nueva fecha (dd/mm/aaaa): ",socio.fecha_afiliacion.dia, socio.fecha_afiliacion.mes,socio.fecha_afiliacion.anio);
     leer_linea(entrada, sizeof(entrada));
     if (entrada[0] != '\0') {
-        char caracter_extra;
-        if (sscanf(entrada, "%d/%d/%d %c", &socio.fecha_afiliacion.dia,&socio.fecha_afiliacion.mes, &socio.fecha_afiliacion.anio,&caracter_extra) != 3) {
+        if (parsear_fecha_texto(entrada, &socio.fecha_afiliacion) != OK) {
             socio.fecha_afiliacion.dia = 0;
             socio.fecha_afiliacion.mes = 0;
             socio.fecha_afiliacion.anio = 0;
@@ -591,10 +652,7 @@ int socio_modificacion_manual_ALU(t_indice *indice, const char *path, const t_fe
     printf("Fecha de ultima cuota actual %02d/%02d/%04d. Nueva fecha (dd/mm/aaaa): ", socio.fecha_ultima_cuota.dia, socio.fecha_ultima_cuota.mes, socio.fecha_ultima_cuota.anio);
     leer_linea(entrada, sizeof(entrada));
     if (entrada[0] != '\0') {
-        char caracter_extra;
-        if (sscanf(entrada, "%d/%d/%d %c", &socio.fecha_ultima_cuota.dia,
-                   &socio.fecha_ultima_cuota.mes, &socio.fecha_ultima_cuota.anio,
-                   &caracter_extra) != 3) {
+        if (parsear_fecha_texto(entrada, &socio.fecha_ultima_cuota) != OK) {
             socio.fecha_ultima_cuota.dia = 0;
             socio.fecha_ultima_cuota.mes = 0;
             socio.fecha_ultima_cuota.anio = 0;
@@ -610,7 +668,9 @@ int socio_modificacion_manual_ALU(t_indice *indice, const char *path, const t_fe
 
     if (strcmp(socio.categoria, CAT_MENOR) == 0) {
         printf("Email del tutor actual %s. Nuevo email: ", socio.email_tutor);
-        leer_linea(email_tutor, sizeof(email_tutor));
+        if (leer_linea_limitada(email_tutor, sizeof(email_tutor)) != OK) {
+            strcpy(email_tutor, "!");
+        }
         if (email_tutor[0] != '\0') {
             strcpy(socio.email_tutor, email_tutor);
         }
@@ -804,7 +864,12 @@ int socios_exportar_ALU(const t_indice *indice, const char *path, const char *pa
 
         if ((strcmp(socio.plan, "PREMIUM") == 0 || strcmp(socio.plan, "VIP") == 0) && cuota_al_dia_ALU(&socio.fecha_ultima_cuota, fecha_proceso))
         {
-            fwrite(&socio, sizeof(t_socio), 1, arch_export);
+            if (fwrite(&socio, sizeof(t_socio), 1, arch_export) != 1) {
+                printf("Error no se pudo escribir el socio en %s.\n", path_export);
+                fclose(arch_socios);
+                fclose(arch_export);
+                return ERROR;
+            }
             exportados++;
         }
         i++;

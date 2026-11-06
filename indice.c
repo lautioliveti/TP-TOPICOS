@@ -15,17 +15,12 @@ int binary_search_ALU(const void *vector, const void *elemento, size_t n, size_t
     int ini = 0;
     int fin = (int)n - 1;
     int medio, comp;
-
-    const void* puntero = vector;
+    const char *base = (const char *)vector;
 
     while (ini <= fin)
     {
         medio = ini + (fin - ini) / 2;
-
-
-        const void *elem_medio = puntero + (medio * tamanyo);
-
-        comp = cmp(elemento, elem_medio);
+        comp = cmp(elemento, base + (size_t)medio * tamanyo);
 
         if (comp == 0)
             return medio;
@@ -56,7 +51,7 @@ int indice_crear_ALU(t_indice *indice, size_t nmemb, size_t tamanyo)
     indice->vindice = (void *)malloc(nmemb * tamanyo);
     if(indice->vindice == NULL)
     {
-        printf("Error de memoria.\n");
+        indice->cantidad_elementos_maxima = 0;
         return ERROR;
     }
     return OK;
@@ -107,55 +102,48 @@ int indice_insertar_ALU(t_indice *indice, const void *registro, size_t tamanyo,
     int limiteIzquierdo = 0;
     int limiteDerecho = (int)indice->cantidad_elementos_actual - 1;
     int comp, medio;
+    int duplicado = 0;
+    int res = OK;
+    char *vector;
 
     if (indice->cantidad_elementos_actual == indice->cantidad_elementos_maxima)
     {
-        if (indice_redimensionar_ALU(indice, tamanyo) == ERROR)
-        {
-            return ERROR;
-        }
+        res = indice_redimensionar_ALU(indice, tamanyo);
     }
 
-
-    t_reg_indice *vectorIndice = (t_reg_indice*)indice->vindice;
-    const t_reg_indice *nuevoRegistro = (const t_reg_indice*)registro;
-
-    while(limiteIzquierdo  <= limiteDerecho)
+    if (res == OK)
     {
-        medio = limiteIzquierdo  + (limiteDerecho - limiteIzquierdo ) / 2;
-        comp = cmp(nuevoRegistro, &vectorIndice[medio]);
+        vector = (char *)indice->vindice;
 
-        if(comp == 0)
+        while (limiteIzquierdo <= limiteDerecho && !duplicado)
         {
-            return ERROR;
+            medio = limiteIzquierdo + (limiteDerecho - limiteIzquierdo) / 2;
+            comp = cmp(registro, vector + (size_t)medio * tamanyo);
+
+            if (comp == 0)
+                duplicado = 1;
+            else if (comp > 0)
+                limiteIzquierdo = medio + 1;
+            else
+                limiteDerecho = medio - 1;
         }
 
-        if(comp > 0 )
+        if (duplicado)
         {
-            limiteIzquierdo  = medio + 1;
+            res = ERROR;
         }
-
-        if(comp < 0)
+        else
         {
-            limiteDerecho = medio - 1;
+            memmove(vector + (size_t)(limiteIzquierdo + 1) * tamanyo,
+                    vector + (size_t)limiteIzquierdo * tamanyo,
+                    (indice->cantidad_elementos_actual - (size_t)limiteIzquierdo) * tamanyo);
+            memcpy(vector + (size_t)limiteIzquierdo * tamanyo, registro, tamanyo);
+            indice->cantidad_elementos_actual++;
         }
     }
 
-
-    int i = (int)indice->cantidad_elementos_actual;
-
-    while (i > limiteIzquierdo)
-    {
-        vectorIndice[i] = vectorIndice[i-1];
-        i--;
-    }
-
-    vectorIndice[limiteIzquierdo ] = *nuevoRegistro;
-    indice->cantidad_elementos_actual++;
-
-    return OK;
+    return res;
 }
-
 /******************************************************************************
 Descripcion:    elimina el elemento cuya clave coincide con la de registro,
                 desplazando los siguientes.
@@ -170,31 +158,25 @@ int indice_eliminar_ALU(t_indice *indice, const void *registro, size_t tamanyo,
                     int (*cmp)(const void *, const void *))
 {
     int posicion;
-    if(indice->cantidad_elementos_actual==0)
+    char *vector;
+    int res = ERROR;
+
+    if (indice->cantidad_elementos_actual > 0)
     {
-        printf("No hay elementos en el indice.\n");
-        return ERROR;
+        posicion = binary_search_ALU(indice->vindice, registro,
+                                     indice->cantidad_elementos_actual, tamanyo, cmp);
+        if (posicion != NO_EXISTE)
+        {
+            vector = (char *)indice->vindice;
+            memmove(vector + (size_t)posicion * tamanyo,
+                    vector + (size_t)(posicion + 1) * tamanyo,
+                    (indice->cantidad_elementos_actual - (size_t)posicion - 1) * tamanyo);
+            indice->cantidad_elementos_actual--;
+            res = OK;
+        }
     }
-
-    posicion = indice_buscar_ALU(indice,(void*)registro,tamanyo,cmp);
-    if(posicion == NO_EXISTE) return ERROR;
-
-    t_reg_indice *vectorIndice = (t_reg_indice*)indice->vindice;
-
-
-
-    while(posicion < (int)indice->cantidad_elementos_actual - 1)
-    {
-        vectorIndice[posicion] = vectorIndice[posicion + 1];
-        posicion++;
-    }
-
-
-    indice->cantidad_elementos_actual--;
-
-    return OK;
+    return res;
 }
-
 /******************************************************************************
 Descripcion:    busca la clave de registro en el indice. Si existe copia el
                 elemento completo (nro_reg incluido) en registro.
@@ -210,21 +192,15 @@ Observaciones:  La comparacion entre claves se realiza exclusivamente mediante
 int indice_buscar_ALU(const t_indice *indice, void *registro, size_t tamanyo,
                   int (*cmp)(const void *, const void *))
 {
+    int pos = NO_EXISTE;
 
-    if (indice->cantidad_elementos_actual == 0)
-        return NO_EXISTE;
-
-
-    int pos = binary_search_ALU(indice->vindice,registro,indice->cantidad_elementos_actual,tamanyo,cmp);
-
-
-    if (pos != NO_EXISTE)
+    if (indice->cantidad_elementos_actual > 0)
     {
-        const t_reg_indice *vectorIndice = (const t_reg_indice*) indice->vindice;
-        t_reg_indice *registroSalida = (t_reg_indice*) registro;
-        *registroSalida = vectorIndice[pos];
+        pos = binary_search_ALU(indice->vindice, registro,
+                                indice->cantidad_elementos_actual, tamanyo, cmp);
+        if (pos != NO_EXISTE)
+            memcpy(registro, (const char *)indice->vindice + (size_t)pos * tamanyo, tamanyo);
     }
-
     return pos;
 }
 
@@ -323,8 +299,8 @@ int indice_cargar_ALU(const char *path, t_indice *indice, size_t tamanyo_reg,
 
     t_reg_indice reg_indice;
     unsigned nro_reg_archivo = 0;
-
-    while (fread(buffer_reg, tamanyo_reg, 1, pfArchivo) == 1)
+    int res= OK;
+    while ( res == OK && fread(buffer_reg, tamanyo_reg, 1, pfArchivo) == 1)
     {
 
         if (es_activo(buffer_reg) != 0)
@@ -336,9 +312,7 @@ int indice_cargar_ALU(const char *path, t_indice *indice, size_t tamanyo_reg,
 
             if(indice_insertar_ALU(indice, &reg_indice, sizeof(t_reg_indice), cmp) != OK)
             {
-                free(buffer_reg);
-                fclose(pfArchivo);
-                return ERROR;
+                res = ERROR;
             }
         }
 
@@ -349,5 +323,5 @@ int indice_cargar_ALU(const char *path, t_indice *indice, size_t tamanyo_reg,
     free(buffer_reg);
     fclose(pfArchivo);
 
-    return OK;
+    return res;
 }

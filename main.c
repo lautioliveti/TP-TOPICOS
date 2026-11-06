@@ -32,6 +32,7 @@
 #define MENU_GENERAR_PRUEBA 'G'
 #define MENU_SALIR     'S'
 
+
 static const char OPCIONES[][LENGTH_MENU] =
 {
     "123456789AGS",
@@ -46,6 +47,7 @@ static const char OPCIONES[][LENGTH_MENU] =
     "Listado de titulos disponibles",
     "Visualizar auditoria de errores de socios",
     "Generar archivos de prueba (CSV y novedades)",
+    "Listado de titulos sin stock",
     "Salir y persistir"
 };
 

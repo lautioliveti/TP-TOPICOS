@@ -147,3 +147,151 @@
 	<stddef.h>
 	"cadena.h"
 
+1793906867 source:c:\users\lautaronahueloliveti\desktop\tp-topicos-main\tp-topicos-main\alquiler.c
+	<stdlib.h>
+	<string.h>
+	"alquiler.h"
+	"cadena.h"
+	"util.h"
+
+1793905534 c:\users\lautaronahueloliveti\desktop\tp-topicos-main\tp-topicos-main\alquiler.h
+	"socio.h"
+	"titulo.h"
+
+1793905534 c:\users\lautaronahueloliveti\desktop\tp-topicos-main\tp-topicos-main\socio.h
+	<stdio.h>
+	"fecha.h"
+	"indice.h"
+	"lectura.h"
+	"validaciones.h"
+
+1793906778 c:\users\lautaronahueloliveti\desktop\tp-topicos-main\tp-topicos-main\fecha.h
+
+1793907486 c:\users\lautaronahueloliveti\desktop\tp-topicos-main\tp-topicos-main\indice.h
+	<stddef.h>
+
+1793905534 c:\users\lautaronahueloliveti\desktop\tp-topicos-main\tp-topicos-main\lectura.h
+	<stdio.h>
+	"indice.h"
+	"fecha.h"
+
+1793905534 c:\users\lautaronahueloliveti\desktop\tp-topicos-main\tp-topicos-main\validaciones.h
+
+1793972970 c:\users\lautaronahueloliveti\desktop\tp-topicos-main\tp-topicos-main\titulo.h
+	<stdio.h>
+	"indice.h"
+	"lectura.h"
+
+1793905534 c:\users\lautaronahueloliveti\desktop\tp-topicos-main\tp-topicos-main\cadena.h
+	<stddef.h>
+
+1793905534 c:\users\lautaronahueloliveti\desktop\tp-topicos-main\tp-topicos-main\util.h
+	<stdio.h>
+	<stdlib.h>
+	"alquiler.h"
+
+1793906867 source:c:\users\lautaronahueloliveti\desktop\tp-topicos-main\tp-topicos-main\auditoria.c
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+	"auditoria.h"
+	"lectura.h"
+	"cadena.h"
+	"util.h"
+	"indice.h"
+
+1793905534 c:\users\lautaronahueloliveti\desktop\tp-topicos-main\tp-topicos-main\auditoria.h
+	"fecha.h"
+
+1793906778 source:c:\users\lautaronahueloliveti\desktop\tp-topicos-main\tp-topicos-main\cadena.c
+	<string.h>
+	<ctype.h>
+	<stddef.h>
+	"cadena.h"
+
+1793905534 source:c:\users\lautaronahueloliveti\desktop\tp-topicos-main\tp-topicos-main\fecha.c
+	<stdio.h>
+	<string.h>
+	<ctype.h>
+	<time.h>
+	"fecha.h"
+	"util.h"
+	"indice.h"
+
+1793972916 source:c:\users\lautaronahueloliveti\desktop\tp-topicos-main\tp-topicos-main\indice.c
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+	"indice.h"
+
+1793907430 source:c:\users\lautaronahueloliveti\desktop\tp-topicos-main\tp-topicos-main\lectura.c
+	<string.h>
+	"lectura.h"
+	"util.h"
+	"cadena.h"
+	"socio.h"
+	"titulo.h"
+	"config.h"
+
+1793905534 c:\users\lautaronahueloliveti\desktop\tp-topicos-main\tp-topicos-main\config.h
+
+1793907823 source:c:\users\lautaronahueloliveti\desktop\tp-topicos-main\tp-topicos-main\novedad.c
+	<string.h>
+	<limits.h>
+	"novedad.h"
+	"cadena.h"
+
+1793905534 c:\users\lautaronahueloliveti\desktop\tp-topicos-main\tp-topicos-main\novedad.h
+	"titulo.h"
+
+1793908028 source:c:\users\lautaronahueloliveti\desktop\tp-topicos-main\tp-topicos-main\socio.c
+	<errno.h>
+	<stdlib.h>
+	<string.h>
+	"socio.h"
+	"cadena.h"
+	"util.h"
+	"auditoria.h"
+	"config.h"
+	"menu.h"
+
+1793905534 c:\users\lautaronahueloliveti\desktop\tp-topicos-main\tp-topicos-main\menu.h
+
+1793972916 source:c:\users\lautaronahueloliveti\desktop\tp-topicos-main\tp-topicos-main\titulo.c
+	<stdlib.h>
+	<string.h>
+	"titulo.h"
+	"cadena.h"
+	"util.h"
+
+1793905534 source:c:\users\lautaronahueloliveti\desktop\tp-topicos-main\tp-topicos-main\util.c
+	<string.h>
+	"util.h"
+	"cadena.h"
+	"config.h"
+
+1793906734 source:c:\users\lautaronahueloliveti\desktop\tp-topicos-main\tp-topicos-main\validaciones.c
+	<ctype.h>
+	<stdio.h>
+	<string.h>
+	"validaciones.h"
+
+1793972916 source:c:\users\lautaronahueloliveti\desktop\tp-topicos-main\tp-topicos-main\main.c
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+	"config.h"
+	"util.h"
+	"menu.h"
+	"fecha.h"
+	"indice.h"
+	"lectura.h"
+	"socio.h"
+	"titulo.h"
+	"novedad.h"
+	"alquiler.h"
+	"auditoria.h"
+	"generador.h"
+
+1793905534 c:\users\lautaronahueloliveti\desktop\tp-topicos-main\tp-topicos-main\generador.h
+

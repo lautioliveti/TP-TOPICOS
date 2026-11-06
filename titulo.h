@@ -42,7 +42,6 @@ int  titulos_listar(const t_indice *indice, const char *path);
 /*============================================================================*/
 /*            FUNCIONES A IMPLEMENTAR POR EL ALUMNO (version _ALU)             */
 /*============================================================================*/
-
 int texto_a_titulo_ALU(const char *linea, void *reg);
 int valida_titulo_ALU(void *reg, const t_contexto *ctx, char *tipo_error);
 int titulos_listar_ALU(const t_indice *indice, const char *path);

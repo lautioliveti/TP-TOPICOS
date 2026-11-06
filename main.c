@@ -47,7 +47,6 @@ static const char OPCIONES[][LENGTH_MENU] =
     "Listado de titulos disponibles",
     "Visualizar auditoria de errores de socios",
     "Generar archivos de prueba (CSV y novedades)",
-    "Listado de titulos sin stock",
     "Salir y persistir"
 };
 
